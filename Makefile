@@ -3,7 +3,7 @@ include $(GOROOT)/src/Make.inc
 TARG=github.com/jbarham/pq.go
 
 CGOFILES=\
-	pq.go
+	pgsql.go
 
 CGO_CFLAGS=-I/usr/local/pgsql/include
 CGO_LDFLAGS=/usr/local/pgsql/lib/libpq.so

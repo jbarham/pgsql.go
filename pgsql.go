@@ -1,5 +1,5 @@
-// Package pq provides high-level access to the PostgreSQL libpq client access library.
-package pq
+// Package pgsql provides high-level access to the PostgreSQL libpq client access library.
+package pgsql
 
 /*
 #include <stdlib.h>

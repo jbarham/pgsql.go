@@ -1,4 +1,4 @@
-package pq
+package pgsql
 
 import (
 	"os"
