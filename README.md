@@ -1,7 +1,7 @@
 pgsql.go
 ========
 
-pgsql.go is a high-level wrapper for the PostgreSQL database
+pgsql.go is a high-level wrapper for the [PostgreSQL database](http://www.postgresql.org/)
 [libpq](http://www.postgresql.org/docs/9.0/static/libpq.html) client library.
 
 Requirements
