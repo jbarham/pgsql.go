@@ -10,6 +10,7 @@ import (
 )
 
 type rec struct {
+	tf bool
 	i32 int
 	i64 int64
 	s   string
@@ -17,8 +18,8 @@ type rec struct {
 }
 
 var rows = []rec{
-	{math.MinInt32, math.MinInt64, "hello world", []byte{0xDE, 0xAD}},
-	{math.MaxInt32, math.MaxInt64, "Γεια σας κόσμο", []byte{0xBE, 0xEF}},
+	{false, math.MinInt32, math.MinInt64, "hello world", []byte{0xDE, 0xAD}},
+	{true, math.MaxInt32, math.MaxInt64, "Γεια σας κόσμο", []byte{0xBE, 0xEF}},
 }
 
 func chkerr(t *testing.T, err os.Error) {
@@ -36,16 +37,16 @@ func TestPq(t *testing.T) {
 	defer conn.Close()
 
 	// Create test table, and schedule its deletion.
-	err = conn.Exec("CREATE TABLE gopq_test (i32 int, i64 bigint, s text, b bytea)")
+	err = conn.Exec("CREATE TABLE gopq_test (tf bool, i32 int, i64 bigint, s text, b bytea)")
 	chkerr(t, err)
 	defer conn.Exec("DROP TABLE gopq_test")
 
 	// Insert test rows.
-	stmt, err := conn.Prepare("INSERT INTO gopq_test VALUES ($1, $2, $3, $4)")
+	stmt, err := conn.Prepare("INSERT INTO gopq_test VALUES ($1, $2, $3, $4, $5)")
 	chkerr(t, err)
 	defer stmt.Clear()
 	for _, row := range rows {
-		err = stmt.Exec(row.i32, row.i64, row.s, row.b)
+		err = stmt.Exec(row.tf, row.i32, row.i64, row.s, row.b)
 		chkerr(t, err)
 	}
 
@@ -69,14 +70,18 @@ func TestPq(t *testing.T) {
 	t.Log("cols:", res.Names())
 	for i := 0; res.Next(); i++ {
 		t.Log("row:", i)
+		var tf bool
 		var i32 int
 		var i64 int64
 		var s string
 		var b []byte
 
-		err := res.Scan(&i32, &i64, &s, &b)
+		err := res.Scan(&tf, &i32, &i64, &s, &b)
 		if err != nil {
 			t.Fatal("scan error:", err)
+		}
+		if tf != rows[i].tf {
+			t.Fatal("bad bool")
 		}
 		if i32 != rows[i].i32 {
 			t.Fatal("bad int32")
