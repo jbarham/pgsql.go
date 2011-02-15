@@ -1,3 +1,7 @@
+// Copyright 2011 John E. Barham. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // Package pgsql provides high-level access to the PostgreSQL libpq client access library.
 package pgsql
 
