@@ -30,6 +30,7 @@ import (
 	"os"
 	"fmt"
 	"time"
+	"runtime"
 	"unsafe"
 	"reflect"
 	"strings"
@@ -83,7 +84,9 @@ type Result struct {
 func newResult(res *C.PGresult) *Result {
 	ncols := int(C.PQnfields(res))
 	nrows := int(C.PQntuples(res))
-	return &Result{res: res, nrows: nrows, currRow: -1, ncols: ncols, cols: nil}
+	result := &Result{res: res, nrows: nrows, currRow: -1, ncols: ncols, cols: nil}
+	runtime.SetFinalizer(result, (*Result).Clear)
+	return result
 }
 
 // Names returns the list of column (field) names, in order, in the result.
@@ -182,6 +185,7 @@ func (r *Result) Clear() {
 	if r.res != nil {
 		C.PQclear(r.res)
 		r.res = nil
+		runtime.SetFinalizer(r, nil)
 	}
 }
 
@@ -231,7 +235,9 @@ func Connect(params string) (conn *Conn, err os.Error) {
 		C.PQfinish(db)
 		return nil, err
 	}
-	return &Conn{db, 0}, nil
+	conn = &Conn{db, 0}
+	runtime.SetFinalizer(conn, (*Conn).Close)
+	return
 }
 
 func (c *Conn) exec(stmt string, params ...interface{}) (cres *C.PGresult) {
@@ -266,7 +272,7 @@ func (c *Conn) Query(query string, params ...interface{}) (res *Result, err os.E
 }
 
 // Prepare creates and returns a prepared statement with the given SQL statement.
-func (c *Conn) Prepare(stmt string) (*Stmt, os.Error) {
+func (c *Conn) Prepare(stmt string) (*Statement, os.Error) {
 	// Generate unique statement name.
 	stmtname := strconv.Itoa(c.stmtNum)
 	stmtnamestr := C.CString(stmtname)
@@ -280,7 +286,9 @@ func (c *Conn) Prepare(stmt string) (*Stmt, os.Error) {
 		C.PQclear(res)
 		return nil, err
 	}
-	return &Stmt{stmtname, c.db, res}, nil
+	statement := &Statement{stmtname, c.db, res}
+	runtime.SetFinalizer(statement, (*Statement).Clear)
+	return statement, nil
 }
 
 // Reset closes the connection to the server and attempts to re-establish a new
@@ -301,16 +309,17 @@ func (c *Conn) Close() {
 	if c != nil && c.db != nil {
 		C.PQfinish(c.db)
 		c.db = nil
+		runtime.SetFinalizer(c, nil)
 	}
 }
 
-type Stmt struct {
+type Statement struct {
 	name string
 	db   *C.PGconn
 	res  *C.PGresult
 }
 
-func (s *Stmt) exec(params ...interface{}) *C.PGresult {
+func (s *Statement) exec(params ...interface{}) *C.PGresult {
 	stmtName := C.CString(s.name)
 	defer C.free(unsafe.Pointer(stmtName))
 	cparams := buildCArgs(params...)
@@ -319,7 +328,7 @@ func (s *Stmt) exec(params ...interface{}) *C.PGresult {
 }
 
 // Exec executes the prepared statement with the given parameters.
-func (s *Stmt) Exec(params ...interface{}) os.Error {
+func (s *Statement) Exec(params ...interface{}) os.Error {
 	cres := s.exec(params...)
 	defer C.PQclear(cres)
 	return resultError(cres)
@@ -327,7 +336,7 @@ func (s *Stmt) Exec(params ...interface{}) os.Error {
 
 // Query executes the prepared statement with the given parameters, returning a
 // Result on successful execution.
-func (s *Stmt) Query(params ...interface{}) (res *Result, err os.Error) {
+func (s *Statement) Query(params ...interface{}) (res *Result, err os.Error) {
 	cres := s.exec(params...)
 	if err = resultError(cres); err != nil {
 		C.PQclear(cres)
@@ -338,8 +347,9 @@ func (s *Stmt) Query(params ...interface{}) (res *Result, err os.Error) {
 
 // Clear frees the memory associated with the statement.  Cleared statements should
 // not be subsequently used.
-func (s *Stmt) Clear() {
+func (s *Statement) Clear() {
 	if s != nil && s.res != nil {
 		C.PQclear(s.res)
+		runtime.SetFinalizer(s, nil)
 	}
 }
