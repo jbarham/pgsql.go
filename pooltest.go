@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"sync"
 	"strconv"
 	"runtime"
 	"github.com/jbarham/pgsql.go"
 )
 
-func testPool(done chan bool, name string, p *pgsql.Pool) {
+func testPool(wg *sync.WaitGroup, name string, p *pgsql.Pool) {
 	for i := 0; i < 5; i++ {
 		conn, err := p.Acquire()
 		if err != nil {
@@ -38,7 +39,7 @@ func testPool(done chan bool, name string, p *pgsql.Pool) {
 		fmt.Printf("Goroutine %s released connection\n", name)
 	}
 	fmt.Printf("Goroutine %s done\n", name)
-	done <- true
+	wg.Done()
 }
 
 func do(n int) {
@@ -47,14 +48,13 @@ func do(n int) {
 		log.Fatal(err)
 	}
 	pool.Debug = true
-	done := make(chan bool)
+	var wg sync.WaitGroup
+	wg.Add(n)
 	for i := 0; i < n; i++ {
-		go testPool(done, strconv.Itoa(i), pool)
+		go testPool(&wg, strconv.Itoa(i), pool)
 		time.Sleep(1e9)
 	}
-	for i := 0; i < n; i++ {
-		<-done
-	}
+	wg.Wait()
 	fmt.Println("do done")
 	// pool should be garbage collected after function exit.
 }
