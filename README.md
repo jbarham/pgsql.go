@@ -37,6 +37,37 @@ Usage
 See the package test file [pgsql_test.go](https://github.com/jbarham/pgsql.go/blob/master/pgsql_test.go)
 for example usage.
 
+Connection Pools
+----------------
+
+Two goroutines cannot safely use the same database connection at the same time.
+However it's often necessary for multiple goroutines to access a database
+simultaneously, such as when creating a goroutine per HTTP request in a web server.
+It's also relatively inefficient to create a new database connection for transient
+goroutines.
+
+For this type of situation, pgsql.go provides a connection pool type `Pool` which
+allows for safe sharing of multiple connections between any number of goroutines
+in the same process.
+
+To create and use a connection pool, simply do the following (with error handling
+omitted):
+
+	// In main goroutine:
+	// Create a connection pool with up to 3 connections.
+	pool, _ := pgsql.NewPool("dbname=testdb", 3, pgsql.DEFAULT_IDLE_TIMEOUT)
+	
+	// In worker goroutine:
+	conn, _ := pool.Acquire() // Get a connection from the pool.
+	// Use the connection normally.
+	result, _ := conn.Query("SELECT SUM(balance) FROM account")
+	result.Next()
+	// ...
+	pool.Release(conn) // Release the connection back to the pool.
+
+For a complete example demonstrating connection pool usage, see the file
+[pool_example.go](https://github.com/jbarham/pgsql.go/blob/master/pool_example.go).
+	
 About
 -----
 
