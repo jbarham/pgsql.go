@@ -166,9 +166,11 @@ func (p *Pool) close() {
 func (p *Pool) Close() os.Error {
 	p.cond.L.Lock()
 	defer p.cond.L.Unlock()
-	p.close()
-	if p.n > 0 {
-		return os.NewError(fmt.Sprintf("pool closed but %d connections in use", p.n))
+	if !p.closed {
+		p.close()
+		if p.n > 0 {
+			return os.NewError(fmt.Sprintf("pool closed but %d connections in use", p.n))
+		}
 	}
 	return nil
 }
