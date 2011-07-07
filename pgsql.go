@@ -39,6 +39,11 @@ import (
 	"encoding/hex"
 )
 
+// Errors
+var (
+	ErrMissingDbName = os.NewError("missing dbname")
+)
+
 func connError(db *C.PGconn) os.Error {
 	return os.NewError("conn error:" + C.GoString(C.PQerrorMessage(db)))
 }
