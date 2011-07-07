@@ -67,7 +67,32 @@ omitted):
 
 For a complete example demonstrating connection pool usage, see the file
 [pool_example.go](https://github.com/jbarham/pgsql.go/blob/master/pool_example.go).
-	
+
+Notifications
+-------------
+
+NOTIFY/LISTEN can be used as:
+
+	// LISTEN
+	conn.Exec("LISTEN foo;")
+
+	// Send a notification
+	conn.Exec("NOTIFY foo;")
+	// or
+	conn.Exec("SELECT pg_notify('foo', 'mypayload');")
+
+
+	// Collect notifications
+	for {
+		for n := conn.Notifies(); n != nil; n = conn.Notifies() {
+			fmt.Printf("#%v\n", n) // &pgsql.Notify{Name: "foo", Pid: 1234, Payload: "mypayload"}
+		}
+		// TODO: Use select() against `conn`s fd
+		time.Sleep(1e5)
+		// Force input consumption to get notifications into queue in case there are no other queries to piggyback off of.
+		conn.ConsumeInput()
+	}
+
 About
 -----
 
