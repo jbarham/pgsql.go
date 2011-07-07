@@ -189,6 +189,20 @@ func (r *Result) Clear() {
 	}
 }
 
+type Notify struct {
+	Name string
+	Pid int
+	Payload string
+}
+
+func newNotify(pgn *C.PGnotify) *Notify {
+	return &Notify{
+		Name: C.GoString(pgn.relname),
+		Pid: int(pgn.be_pid),
+		Payload: C.GoString(pgn.extra),
+	}
+}
+
 func buildCArgs(params ...interface{}) **C.char {
 	sparams := make([]string, len(params))
 	for i, v := range params {
@@ -222,7 +236,7 @@ type Conn struct {
 	stmtNum int
 }
 
-// Connect creates a new database connection using the given connection string.
+// Connect creasultError(cres); err != nil {tes a new database connection using the given connection string.
 // Each parameter setting is in the form 'keyword=value'.
 // See http://www.postgresql.org/docs/9.0/static/libpq-connect.html#LIBPQ-PQCONNECTDBPARAMS
 // for a list of recognized parameters.
@@ -302,6 +316,19 @@ func (c *Conn) Reset() os.Error {
 		return connError(c.db)
 	}
 	return nil
+}
+
+func (c *Conn) Notifies() *Notify {
+	if pgn := C.PQnotifies(c.db); pgn != nil {
+		n := newNotify(pgn)
+		C.PQfreemem(unsafe.Pointer(pgn))
+		return n
+	}
+	return nil
+}
+
+func (c *Conn) ConsumeInput() {
+	C.PQconsumeInput(c.db)
 }
 
 // Close closes the database connection and frees its associated memory.
