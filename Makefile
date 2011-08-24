@@ -6,7 +6,7 @@ CGOFILES=\
 	pgsql.go\
 	pool.go\
 
-CGO_CFLAGS=-I/usr/local/pgsql/include
-CGO_LDFLAGS=/usr/local/pgsql/lib/libpq.so
+CGO_CFLAGS=-I`pg_config --includedir`
+CGO_LDFLAGS=`pg_config --libdir`/libpq.so
 
 include $(GOROOT)/src/Make.pkg
