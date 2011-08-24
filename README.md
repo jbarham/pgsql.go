@@ -7,9 +7,9 @@ pgsql.go is a high-level wrapper for the [PostgreSQL database](http://www.postgr
 Requirements
 ------------
 
-The pgsql.go package `Makefile` assumes that the `libpq` library is installed at
-`/usr/local/pgsql/lib/libpq.so` and that the `libpq` headers are under
-`/usr/local/pgsql/include`.  Modify the `Makefile` to suit your setup.
+The pgsql.go package `Makefile` assumes that `pg_config` is in your `$PATH`
+to automatically determine the location of the PostgreSQL include directory and
+the `libpq.so` shared library.
 
 To use the compiled pgsql.go package, the `libpq.so` library directory should be
 in your library path (e.g., `$LD_LIBRARY_PATH` on Linux).
