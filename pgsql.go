@@ -331,6 +331,11 @@ func (c *Conn) ConsumeInput() {
 	C.PQconsumeInput(c.db)
 }
 
+// Exposes the connections file-destriptor for use with select().
+func (c *Conn) Fd() int {
+	return int(C.PQsocket(c.db))
+}
+
 // Close closes the database connection and frees its associated memory.
 func (c *Conn) Close() {
 	if c != nil && c.db != nil {
