@@ -26,7 +26,7 @@ func ParseURL(url string) (cs string, err os.Error) {
 	}
 
 	// Add user if present
-	up := strings.Split(u.RawUserinfo, ":", 2)
+	up := strings.Split(u.RawUserinfo, ":")
 	if len(up) > 0 && up[0] != "" {
 		cs += " user=" + up[0]
 	}
@@ -37,7 +37,7 @@ func ParseURL(url string) (cs string, err os.Error) {
 	}
 
 	// Add host if present
-	hp := strings.Split(u.Host, ":", 2)
+	hp := strings.Split(u.Host, ":")
 	if len(hp) > 0 {
 		cs += " host=" + hp[0]
 	}
