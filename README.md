@@ -67,7 +67,14 @@ omitted):
 
 For a complete example demonstrating connection pool usage, see the file
 [pool_example.go](https://github.com/jbarham/pgsql.go/blob/master/pool_example.go).
-	
+
+URLs
+----
+
+	conn, err := pgsql.ConnectURL("postgres://example.com/testdb")
+	// or with user, pass, and port
+	conn, err := pgsql.ConnectURL("postgres://me:mypass@example.com:1234/testdb")
+
 About
 -----
 

@@ -3,6 +3,7 @@ include $(GOROOT)/src/Make.inc
 TARG=github.com/jbarham/pgsql.go
 
 CGOFILES=\
+	util.go\
 	pgsql.go\
 	pool.go\
 
