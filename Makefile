@@ -7,6 +7,6 @@ CGOFILES=\
 	pool.go\
 
 CGO_CFLAGS=-I`pg_config --includedir`
-CGO_LDFLAGS=`pg_config --libdir`/libpq.so
+CGO_LDFLAGS=-L`pg_config --libdir` -lpq
 
 include $(GOROOT)/src/Make.pkg
