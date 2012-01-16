@@ -189,6 +189,14 @@ func (r *Result) Clear() {
 	}
 }
 
+func (r *Result) Nrows() int {
+	return r.nrows
+}
+
+func (r *Result) CurrRow() int {
+	return r.currRow
+}
+
 func buildCArgs(params ...interface{}) **C.char {
 	sparams := make([]string, len(params))
 	for i, v := range params {
